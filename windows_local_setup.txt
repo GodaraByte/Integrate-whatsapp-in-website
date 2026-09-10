@@ -1,0 +1,277 @@
+========================================================================
+WHATSAPP SENDER - EVOLUTION API SETUP GUIDE (DOCKER + VS CODE)
+========================================================================
+
+This guide walks you through setting up a local WhatsApp Sender project
+using Docker, the Evolution API, PostgreSQL, and Redis, along with a
+simple HTML frontend to send text and image messages.
+
+------------------------------------------------------------------------
+STEP 1: DOWNLOAD DOCKER DESKTOP (WINDOWS 64-BIT)
+------------------------------------------------------------------------
+
+Download link:
+https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe
+
+------------------------------------------------------------------------
+STEP 2: INSTALL DOCKER DESKTOP AND SET UP ENVIRONMENT VARIABLES
+------------------------------------------------------------------------
+
+1. Install the downloaded Docker Desktop setup file.
+2. Open System Properties on your PC.
+3. Go to: Advanced -> Environment Variables -> System Variables -> Path
+4. Click "New" and add the path where Docker is installed.
+   By default, this path is:
+   C:\Users\preml\AppData\Local\Programs\DockerDesktop\resources\bin
+5. Click Save, then OK, then Apply to confirm the changes.
+
+------------------------------------------------------------------------
+STEP 3: CREATE A PROJECT FOLDER AND OPEN IT IN VS CODE
+------------------------------------------------------------------------
+
+Create a new folder for this project and open it in Visual Studio Code.
+
+------------------------------------------------------------------------
+STEP 4: CREATE THE FOLLOWING THREE FILES IN THE PROJECT FOLDER
+------------------------------------------------------------------------
+
+FILE 1: index.html
+--------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>WhatsApp Sender</title>
+</head>
+<body class="min-h-screen bg-slate-950 flex items-center justify-center p-5">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6">
+        <h1 class="text-2xl font-bold text-slate-900">
+            WhatsApp Sender
+        </h1>
+        <p class="text-sm text-slate-500 mt-1 mb-6">
+            Send text and images using Evolution API
+        </p>
+        <form id="sendForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium mb-2">
+                    Mobile Number
+                </label>
+                <input
+                    type="text"
+                    id="mobile"
+                    placeholder="919876543210"
+                    inputmode="numeric"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                >
+                <p class="text-xs text-slate-400 mt-1">
+                    Include country code. Example: 919876543210
+                </p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">
+                    Message
+                </label>
+                <textarea
+                    id="message"
+                    rows="4"
+                    placeholder="Enter your message..."
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                ></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">
+                    Image URL
+                    <span class="text-slate-400">(Optional)</span>
+                </label>
+                <input
+                    type="url"
+                    id="imageUrl"
+                    placeholder="https://example.com/image.jpg"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+            <button
+                type="submit"
+                id="sendButton"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition"
+            >
+                Send Message
+            </button>
+        </form>
+        <pre
+            id="result"
+            class="hidden mt-5 p-4 bg-slate-100 rounded-xl text-xs overflow-auto"
+        ></pre>
+    </div>
+<script>
+    const API_KEY = "YOUR_API_KEY";
+    const INSTANCE_NAME = "YOUR_INSTANCE_NAME";
+    const BASE_URL = "http://localhost:8080";
+
+    async function sendText(mobile, message) {
+        const response = await fetch(
+            `${BASE_URL}/message/sendText/${INSTANCE_NAME}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": API_KEY
+                },
+                body: JSON.stringify({
+                    number: mobile,
+                    text: message
+                })
+            }
+        );
+        return await response.json();
+    }
+
+    async function sendImage(mobile, message, imageUrl) {
+        const response = await fetch(
+            `${BASE_URL}/message/sendMedia/${INSTANCE_NAME}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": API_KEY
+                },
+                body: JSON.stringify({
+                    number: mobile,
+                    mediatype: "image",
+                    media: imageUrl,
+                    caption: message
+                })
+            }
+        );
+        return await response.json();
+    }
+
+    const mobileInput = document.getElementById("mobile");
+    mobileInput.addEventListener("input", function () {
+        this.value = this.value.replace(/\D/g, "");
+    });
+
+    document.getElementById("sendForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const mobile = document.getElementById("mobile").value;
+        const message = document.getElementById("message").value;
+        const imageUrl = document.getElementById("imageUrl").value.trim();
+        const button = document.getElementById("sendButton");
+        const result = document.getElementById("result");
+
+        button.disabled = true;
+        button.innerText = "Sending...";
+        result.classList.add("hidden");
+
+        try {
+            let data;
+            if (imageUrl) {
+                data = await sendImage(mobile, message, imageUrl);
+            } else {
+                data = await sendText(mobile, message);
+            }
+            result.classList.remove("hidden");
+            result.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            result.classList.remove("hidden");
+            result.textContent = error.message;
+        }
+
+        button.disabled = false;
+        button.innerText = "Send Message";
+    });
+</script>
+</body>
+</html>
+
+
+FILE 2: .env
+--------------------
+AUTHENTICATION_API_KEY=Godara
+DATABASE_ENABLED=true
+DATABASE_PROVIDER=postgresql
+DATABASE_CONNECTION_URI=postgresql://evolution:Godara@postgres:5432/evolution
+CACHE_REDIS_ENABLED=true
+CACHE_REDIS_URI=redis://redis:6379/6
+CACHE_REDIS_PREFIX_KEY=evolution
+
+
+FILE 3: docker-compose.yml
+--------------------
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: Godara
+      POSTGRES_DB: evolution
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evolution -d evolution"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+
+  evolution-api:
+    image: evoapicloud/evolution-api:latest
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+------------------------------------------------------------------------
+STEP 5: START THE DOCKER CONTAINERS
+------------------------------------------------------------------------
+
+1. Open a Command Prompt or Terminal in the project folder.
+2. Run the following command:
+
+   docker compose up -d
+
+3. Once the containers are running, open this URL in your browser:
+   http://localhost:8080/manager/login
+
+4. Log in using the API key set in your .env file
+   (AUTHENTICATION_API_KEY value, e.g. "Godara").
+
+5. Follow the on-screen steps in the Evolution API manager to
+   create and connect your WhatsApp instance.
+
+------------------------------------------------------------------------
+STEP 6: INSTALL THE LIVE SERVER EXTENSION IN VS CODE
+------------------------------------------------------------------------
+
+Install the "Live Server" extension from the VS Code Extensions
+Marketplace.
+
+------------------------------------------------------------------------
+STEP 7: RUN THE PROJECT USING LIVE SERVER
+------------------------------------------------------------------------
+
+1. Open the index.html file in VS Code.
+2. Click the "Go Live" button in the bottom-right corner of VS Code.
+3. This will open the project automatically in your browser.
+4. If it does not open automatically, manually visit:
+   http://127.0.0.1:5500/index.html
+
+5. Test the system by entering:
+   - Mobile number: country code + mobile number, digits only
+     (no spaces, letters, or special characters)
+   - Message: any text message
+   - Image URL: optional, only if you want to send an image
+
+========================================================================
+END OF GUIDE
+========================================================================
