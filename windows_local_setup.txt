@@ -108,7 +108,7 @@ FILE 1: index.html
         ></pre>
     </div>
 <script>
-    const API_KEY = "YOUR_API_KEY";
+    const API_KEY = "Godara";
     const INSTANCE_NAME = "YOUR_INSTANCE_NAME";
     const BASE_URL = "http://localhost:8080";
 
