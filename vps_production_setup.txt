@@ -7,21 +7,26 @@ ssh root@YOUR_VPS_IPV4
 
 Command 2:
 
-sudo su && cd ~
+sudo su
 
 
-Command 3:
+Command 4:
+
+cd ~
+
+
+Command 4:
 
 curl -fsSL https://raw.githubusercontent.com/GodaraByte/Integrate-whatsapp-in-website/main/vps_production_setup.sh -o install.sh
 
 
-Command 4:
+Command 5:
 
 nano install.sh
 
 DO: change the Password and API key here then save the file 
 
 
-Command 5:
+Command 6:
 
 bash install.sh
