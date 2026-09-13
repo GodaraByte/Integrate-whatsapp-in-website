@@ -30,3 +30,9 @@ DO: change the Password and API key here then save the file
 Command 6:
 
 bash install.sh
+
+
+Final Check: 
+
+open this URL in your browser:
+   http://IPv4_of_your_VPS:8080/manager/login
