@@ -10,7 +10,7 @@ Command 2:
 sudo su
 
 
-Command 4:
+Command 3:
 
 cd ~
 
