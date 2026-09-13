@@ -7,7 +7,7 @@ ssh root@YOUR_VPS_IPV4
 
 Command 2:
 
-sudo su
+sudo su && cd ~
 
 
 Command 3:
